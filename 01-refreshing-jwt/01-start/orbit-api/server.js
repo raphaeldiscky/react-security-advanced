@@ -11,13 +11,30 @@ const User = require('./data/User')
 const Token = require('./data/Token')
 const InventoryItem = require('./data/InventoryItem')
 
-const { createToken, hashPassword, verifyPassword } = require('./util')
+const {
+  createToken,
+  hashPassword,
+  verifyPassword,
+  getRefreshToken
+} = require('./util')
 
 const app = express()
 
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+
+const saveRefreshToken = async (refreshToken, userId) => {
+  try {
+    const storedRefreshToken = new Token({
+      refreshToken,
+      user: userId
+    })
+    return await storedRefreshToken.save()
+  } catch (err) {
+    return err
+  }
+}
 
 app.post('/api/authenticate', async (req, res) => {
   try {
@@ -43,6 +60,12 @@ app.post('/api/authenticate', async (req, res) => {
 
       const decodedToken = jwtDecode(token)
       const expiresAt = decodedToken.exp
+
+      const refreshToken = getRefreshToken()
+      await saveRefreshToken(refreshToken, userInfo._id)
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true
+      })
 
       res.json({
         message: 'Authentication successful!',
@@ -91,14 +114,21 @@ app.post('/api/signup', async (req, res) => {
       const decodedToken = jwtDecode(token)
       const expiresAt = decodedToken.exp
 
-      const { firstName, lastName, email, role } = savedUser
+      const { _id, firstName, lastName, email, role } = savedUser
 
       const userInfo = {
+        _id,
         firstName,
         lastName,
         email,
         role
       }
+
+      const refreshToken = getRefreshToken()
+      await saveRefreshToken(refreshToken, userInfo._id)
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true
+      })
 
       return res.json({
         message: 'User created!',

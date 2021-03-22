@@ -18,7 +18,8 @@
     "express-jwt": "^5.3.3",
     "jsonwebtoken": "^8.5.1",
     "jwt-decode": "^2.2.0",
-    "mongoose": "^5.9.13"
+    "mongoose": "^5.9.13",
+    "rand-token": "^1.0.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"
