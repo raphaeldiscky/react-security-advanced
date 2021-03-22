@@ -180,6 +180,22 @@ app.get('/api/token/refresh', async (req, res) => {
   }
 })
 
+app.delete('/api/token/invalidate', async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Something went wrong' })
+    }
+    await Token.findOneAndRemove({
+      refreshToken
+    })
+    res.clearCookie('refreshToken')
+    res.json({ message: 'Token invalidated' })
+  } catch (err) {
+    return res.status(400).json({ message: 'Something went wrong' })
+  }
+})
+
 const attachUser = (req, res, next) => {
   const token = req.headers.authorization
   if (!token) {

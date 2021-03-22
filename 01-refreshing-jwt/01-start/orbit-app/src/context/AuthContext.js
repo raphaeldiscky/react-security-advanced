@@ -30,12 +30,17 @@ const AuthProvider = ({ children }) => {
     })
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    localStorage.removeItem('expiresAt')
-    setAuthState({})
-    history.push('/login')
+  const logout = async () => {
+    try {
+      await publicFetch.delete('/token/invalidate')
+      localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
+      localStorage.removeItem('expiresAt')
+      setAuthState({})
+      history.push('/login')
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const isAuthenticated = () => {
