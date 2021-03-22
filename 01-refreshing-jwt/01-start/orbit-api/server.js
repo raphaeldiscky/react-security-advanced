@@ -16,7 +16,9 @@ const {
   createToken,
   hashPassword,
   verifyPassword,
-  getRefreshToken
+  getRefreshToken,
+  oneWeek,
+  getDatePlusOneWeek
 } = require('./util')
 
 const app = express()
@@ -30,7 +32,8 @@ const saveRefreshToken = async (refreshToken, userId) => {
   try {
     const storedRefreshToken = new Token({
       refreshToken,
-      user: userId
+      user: userId,
+      expiresAt: getDatePlusOneWeek()
     })
     return await storedRefreshToken.save()
   } catch (err) {
@@ -59,14 +62,13 @@ app.post('/api/authenticate', async (req, res) => {
       const userInfo = Object.assign({}, { ...rest })
 
       const token = createToken(userInfo)
-
-      const decodedToken = jwtDecode(token)
-      const expiresAt = decodedToken.exp
+      const expiresAt = getDatePlusOneWeek()
 
       const refreshToken = getRefreshToken()
       await saveRefreshToken(refreshToken, userInfo._id)
       res.cookie('refreshToken', refreshToken, {
-        httpOnly: true
+        httpOnly: true,
+        maxAge: oneWeek
       })
 
       res.json({
@@ -113,8 +115,7 @@ app.post('/api/signup', async (req, res) => {
 
     if (savedUser) {
       const token = createToken(savedUser)
-      const decodedToken = jwtDecode(token)
-      const expiresAt = decodedToken.exp
+      const expiresAt = getDatePlusOneWeek()
 
       const { _id, firstName, lastName, email, role } = savedUser
 
@@ -129,7 +130,8 @@ app.post('/api/signup', async (req, res) => {
       const refreshToken = getRefreshToken()
       await saveRefreshToken(refreshToken, userInfo._id)
       res.cookie('refreshToken', refreshToken, {
-        httpOnly: true
+        httpOnly: true,
+        maxAge: oneWeek
       })
 
       return res.json({
@@ -158,7 +160,8 @@ app.get('/api/token/refresh', async (req, res) => {
       return res.status(401).json({ message: 'Not authorized' })
     }
     const userFromToken = await Token.findOne({
-      refreshToken
+      refreshToken,
+      expiresAt: { $gte: new Date() }
     }).select('user')
 
     if (!userFromToken) {

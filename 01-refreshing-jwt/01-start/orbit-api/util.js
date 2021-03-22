@@ -57,10 +57,18 @@ const getRefreshToken = () => {
   return randToken.uid(64)
 }
 
+const oneWeek = 7 * 24 * 3600 * 1000
+
+const getDatePlusOneWeek = () => {
+  return new Date(new Date().valueOf() + oneWeek)
+}
+
 module.exports = {
   createToken,
   hashPassword,
   verifyPassword,
   requireAdmin,
-  getRefreshToken
+  getRefreshToken,
+  oneWeek,
+  getDatePlusOneWeek
 }
