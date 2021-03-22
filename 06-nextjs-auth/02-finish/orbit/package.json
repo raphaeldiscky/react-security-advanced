@@ -1,0 +1,39 @@
+{
+  "name": "orbit",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "1.2.28",
+    "@fortawesome/free-solid-svg-icons": "5.13.0",
+    "@fortawesome/react-fontawesome": "0.1.9",
+    "@hapi/iron": "^6.0.0",
+    "axios": "^0.19.2",
+    "bcryptjs": "^2.4.3",
+    "chart.js": "^2.9.3",
+    "classnames": "^2.2.6",
+    "cookie": "^0.4.1",
+    "formik": "^2.1.4",
+    "jsonwebtoken": "^8.5.1",
+    "jwt-decode": "^2.2.0",
+    "mongodb": "^3.5.9",
+    "mongoose": "^5.9.20",
+    "next": "9.4.4",
+    "next-connect": "^0.7.2",
+    "next-cookies": "^2.0.3",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0",
+    "react": "16.13.1",
+    "react-chartjs-2": "^2.9.0",
+    "react-dom": "16.13.1",
+    "yup": "^0.28.5"
+  },
+  "devDependencies": {
+    "postcss-preset-env": "^6.7.0",
+    "tailwindcss": "^1.4.6"
+  }
+}
