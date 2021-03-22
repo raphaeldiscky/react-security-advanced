@@ -60,6 +60,8 @@ app.post('/api/authenticate', async (req, res) => {
       const decodedToken = jwtDecode(token)
       const expiresAt = decodedToken.exp
 
+      req.session.user = userInfo
+
       res.json({
         message: 'Authentication successful!',
         token,
@@ -115,6 +117,8 @@ app.post('/api/signup', async (req, res) => {
         email,
         role
       }
+
+      req.session.user = userInfo
 
       return res.json({
         message: 'User created!',
