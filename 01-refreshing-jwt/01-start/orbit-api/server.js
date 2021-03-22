@@ -5,6 +5,7 @@ const cors = require('cors')
 const jwt = require('express-jwt')
 const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
+const cookieParser = require('cookie-parser')
 
 const dashboardData = require('./data/dashboard')
 const User = require('./data/User')
@@ -23,6 +24,7 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(cookieParser())
 
 const saveRefreshToken = async (refreshToken, userId) => {
   try {
@@ -145,6 +147,36 @@ app.post('/api/signup', async (req, res) => {
     return res.status(400).json({
       message: 'There was a problem creating your account'
     })
+  }
+})
+
+app.get('/api/token/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.cookies
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: 'Not authorized' })
+    }
+    const userFromToken = await Token.findOne({
+      refreshToken
+    }).select('user')
+
+    if (!userFromToken) {
+      return res.status(401).json({ message: 'Not authorized' })
+    }
+
+    const user = await User.findOne({
+      _id: userFromToken.user
+    })
+
+    if (!user) {
+      return res.status(401).json({ message: 'Not authorized' })
+    }
+
+    const token = createToken(user)
+    return res.json({ token })
+  } catch (err) {
+    return res.status(400).json({ message: 'Something went wrong' })
   }
 })
 
