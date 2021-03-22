@@ -58,6 +58,19 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  const getAccessToken = () => {
+    return localStorage.getItem('token')
+  }
+
+  const getNewTokenForRequest = async (failedRequest) => {
+    const { data } = await publicFetch.get('/token/refresh')
+    failedRequest.response.config.headers[
+      'Authorization'
+    ] = `Bearer ${data.token}`
+    localStorage.setItem('token', data.token)
+    return Promise.resolve()
+  }
+
   return (
     <Provider
       value={{
@@ -66,7 +79,9 @@ const AuthProvider = ({ children }) => {
         logout,
         isAuthenticated,
         isAdmin,
-        getNewToken
+        getNewToken,
+        getAccessToken,
+        getNewTokenForRequest
       }}
     >
       {children}

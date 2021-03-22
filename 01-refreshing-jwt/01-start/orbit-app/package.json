@@ -11,6 +11,7 @@
     "@testing-library/react": "^10.0.4",
     "@testing-library/user-event": "^10.1.2",
     "axios": "^0.19.2",
+    "axios-auth-refresh": "^3.1.0",
     "chart.js": "^2.9.3",
     "classnames": "^2.2.6",
     "dompurify": "^2.0.12",
