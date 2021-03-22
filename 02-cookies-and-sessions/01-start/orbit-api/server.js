@@ -154,6 +154,17 @@ const requireAdmin = (req, res, next) => {
   next()
 }
 
+app.post('/api/logout', requireAuth, (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res
+        .status(400)
+        .json({ message: 'There was a problem logging out' })
+    }
+    res.json({ message: 'Logout successful' })
+  })
+})
+
 app.get('/api/dashboard-data', requireAuth, (req, res) =>
   res.json(dashboardData)
 )
