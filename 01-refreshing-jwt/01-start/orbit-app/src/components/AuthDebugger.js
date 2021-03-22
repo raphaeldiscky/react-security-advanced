@@ -1,5 +1,6 @@
 import React, { useContext } from 'react'
 import { AuthContext } from './../context/AuthContext'
+import GradientButton from './common/GradientButton'
 
 const AuthStateItem = ({ title, value }) => (
   <div className='text-sm'>
@@ -17,6 +18,10 @@ const AuthDebugger = () => {
     <section className='rounded-lg shadow bg-white p-4'>
       <div className='mb-2'>
         <AuthStateItem title='Token' value={token} />
+        <GradientButton
+          text='Get New Token '
+          onClick={authContext.getNewToken}
+        />
       </div>
       <div className='mb-2'>
         <AuthStateItem title='Expiry' value={expiresAt} />
