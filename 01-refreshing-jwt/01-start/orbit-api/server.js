@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 
 const dashboardData = require('./data/dashboard')
 const User = require('./data/User')
+const Token = require('./data/Token')
 const InventoryItem = require('./data/InventoryItem')
 
 const { createToken, hashPassword, verifyPassword } = require('./util')
