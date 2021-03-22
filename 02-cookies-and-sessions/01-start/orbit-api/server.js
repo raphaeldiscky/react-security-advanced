@@ -5,6 +5,7 @@ const cors = require('cors')
 const jwt = require('express-jwt')
 const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
+const session = require('express-session')
 
 const dashboardData = require('./data/dashboard')
 const User = require('./data/User')
@@ -17,6 +18,22 @@ const app = express()
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    saveUninitialized: true, // set cookie in browser before we get info from session
+    resave: false,
+    cookie: {
+      httpOnly: true,
+      maxAge: parseInt(process.env.SESSION_MAX_AGE)
+    }
+  })
+)
+
+app.use((req, res, next) => {
+  console.log(req.session)
+  next()
+})
 
 app.post('/api/authenticate', async (req, res) => {
   try {
