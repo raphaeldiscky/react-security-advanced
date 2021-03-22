@@ -1,11 +1,13 @@
-import React, { createContext, useState } from 'react'
+import React, { createContext, useState, useEffect, useContext } from 'react'
 import { useHistory } from 'react-router-dom'
+import { FetchContext } from './FetchContext'
 
 const AuthContext = createContext()
 const { Provider } = AuthContext
 
 const AuthProvider = ({ children }) => {
   const history = useHistory()
+  const fetchContext = useContext(FetchContext)
 
   const token = localStorage.getItem('token')
   const userInfo = localStorage.getItem('userInfo')
@@ -16,6 +18,18 @@ const AuthProvider = ({ children }) => {
     expiresAt,
     userInfo: userInfo ? JSON.parse(userInfo) : {}
   })
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        const { data } = await fetchContext.authAxios.get('/user-info')
+        console.log(data)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    getUserInfo()
+  }, [fetchContext])
 
   const setAuthInfo = ({ token, userInfo, expiresAt }) => {
     localStorage.setItem('token', token)
