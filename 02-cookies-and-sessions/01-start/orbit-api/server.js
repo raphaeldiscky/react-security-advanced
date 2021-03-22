@@ -138,34 +138,17 @@ app.post('/api/signup', async (req, res) => {
   }
 })
 
-const attachUser = (req, res, next) => {
-  const token = req.headers.authorization
-  if (!token) {
-    return res.status(401).json({ message: 'Authentication invalid' })
+const requireAuth = (req, res, next) => {
+  const { user } = req.session
+  if (!user) {
+    return res.status(401).json({ message: 'Unauthorized' })
   }
-  const decodedToken = jwtDecode(token.slice(7))
-
-  if (!decodedToken) {
-    return res.status(401).json({
-      message: 'There was a problem authorizing the request'
-    })
-  } else {
-    req.user = decodedToken
-    next()
-  }
+  next()
 }
 
-app.use(attachUser)
-
-const requireAuth = jwt({
-  secret: process.env.JWT_SECRET,
-  audience: 'api.orbit',
-  issuer: 'api.orbit'
-})
-
 const requireAdmin = (req, res, next) => {
-  const { role } = req.user
-  if (role !== 'admin') {
+  const { user } = req.session
+  if (user.role !== 'admin') {
     return res.status(401).json({ message: 'Insufficient role' })
   }
   next()
@@ -195,9 +178,9 @@ app.patch('/api/user-role', async (req, res) => {
 
 app.get('/api/inventory', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const user = req.user.sub
+    const { user } = req.session
     const inventoryItems = await InventoryItem.find({
-      user
+      user: user._id
     })
     res.json(inventoryItems)
   } catch (err) {
@@ -207,9 +190,9 @@ app.get('/api/inventory', requireAuth, requireAdmin, async (req, res) => {
 
 app.post('/api/inventory', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const userId = req.user.sub
+    const { user } = req.session
     const input = Object.assign({}, req.body, {
-      user: userId
+      user: user._id
     })
     const inventoryItem = new InventoryItem(input)
     await inventoryItem.save()
@@ -230,9 +213,10 @@ app.delete(
   requireAdmin,
   async (req, res) => {
     try {
+      const { user } = req.session
       const deletedItem = await InventoryItem.findOneAndDelete({
         _id: req.params.id,
-        user: req.user.sub
+        user: user._id
       })
       res.status(201).json({
         message: 'Inventory item deleted!',
@@ -264,15 +248,15 @@ app.get('/api/users', requireAuth, async (req, res) => {
 
 app.get('/api/bio', requireAuth, async (req, res) => {
   try {
-    const { sub } = req.user
-    const user = await User.findOne({
-      _id: sub
+    const { user } = req.session
+    const foundUser = await User.findOne({
+      _id: user._id
     })
       .lean()
       .select('bio')
 
     res.json({
-      bio: user.bio
+      bio: foundUser.bio
     })
   } catch (err) {
     return res.status(400).json({
@@ -283,11 +267,11 @@ app.get('/api/bio', requireAuth, async (req, res) => {
 
 app.patch('/api/bio', requireAuth, async (req, res) => {
   try {
-    const { sub } = req.user
+    const { user } = req.session
     const { bio } = req.body
     const updatedUser = await User.findOneAndUpdate(
       {
-        _id: sub
+        _id: user._id
       },
       {
         bio
