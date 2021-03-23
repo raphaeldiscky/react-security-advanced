@@ -165,59 +165,74 @@ app.get(
   (req, res) => res.json(dashboardData)
 )
 
-app.patch('/api/user-role', async (req, res) => {
-  try {
-    const { role } = req.body
-    const allowedRoles = ['user', 'admin']
+app.patch(
+  '/api/user-role',
+  requireAuth,
+  jwtAuthz(['edit:user']),
+  async (req, res) => {
+    try {
+      const { role } = req.body
+      const allowedRoles = ['user', 'admin']
 
-    if (!allowedRoles.includes(role)) {
-      return res.status(400).json({ message: 'Role not allowed' })
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: 'Role not allowed' })
+      }
+      await User.findOneAndUpdate({ _id: req.user.sub }, { role })
+      res.json({
+        message:
+          'User role updated. You must log in again for the changes to take effect.'
+      })
+    } catch (err) {
+      return res.status(400).json({ error: err })
     }
-    await User.findOneAndUpdate({ _id: req.user.sub }, { role })
-    res.json({
-      message:
-        'User role updated. You must log in again for the changes to take effect.'
-    })
-  } catch (err) {
-    return res.status(400).json({ error: err })
   }
-})
+)
 
-app.get('/api/inventory', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const user = req.user.sub
-    const inventoryItems = await InventoryItem.find({
-      user
-    })
-    res.json(inventoryItems)
-  } catch (err) {
-    return res.status(400).json({ error: err })
+app.get(
+  '/api/inventory',
+  requireAuth,
+  jwtAuthz(['read:inventory']),
+  async (req, res) => {
+    try {
+      const user = req.user.sub
+      const inventoryItems = await InventoryItem.find({
+        user
+      })
+      res.json(inventoryItems)
+    } catch (err) {
+      return res.status(400).json({ error: err })
+    }
   }
-})
+)
 
-app.post('/api/inventory', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const userId = req.user.sub
-    const input = Object.assign({}, req.body, {
-      user: userId
-    })
-    const inventoryItem = new InventoryItem(input)
-    await inventoryItem.save()
-    res.status(201).json({
-      message: 'Inventory item created!',
-      inventoryItem
-    })
-  } catch (err) {
-    return res.status(400).json({
-      message: 'There was a problem creating the item'
-    })
+app.post(
+  '/api/inventory',
+  requireAuth,
+  jwtAuthz(['write:inventory']),
+  async (req, res) => {
+    try {
+      const userId = req.user.sub
+      const input = Object.assign({}, req.body, {
+        user: userId
+      })
+      const inventoryItem = new InventoryItem(input)
+      await inventoryItem.save()
+      res.status(201).json({
+        message: 'Inventory item created!',
+        inventoryItem
+      })
+    } catch (err) {
+      return res.status(400).json({
+        message: 'There was a problem creating the item'
+      })
+    }
   }
-})
+)
 
 app.delete(
   '/api/inventory/:id',
   requireAuth,
-  requireAdmin,
+  jwtAuthz(['delete:inventory']),
   async (req, res) => {
     try {
       const deletedItem = await InventoryItem.findOneAndDelete({
@@ -236,23 +251,28 @@ app.delete(
   }
 )
 
-app.get('/api/users', requireAuth, async (req, res) => {
-  try {
-    const users = await User.find()
-      .lean()
-      .select('_id firstName lastName avatar bio')
+app.get(
+  '/api/users',
+  requireAuth,
+  jwtAuthz(['read:users']),
+  async (req, res) => {
+    try {
+      const users = await User.find()
+        .lean()
+        .select('_id firstName lastName avatar bio')
 
-    res.json({
-      users
-    })
-  } catch (err) {
-    return res.status(400).json({
-      message: 'There was a problem getting the users'
-    })
+      res.json({
+        users
+      })
+    } catch (err) {
+      return res.status(400).json({
+        message: 'There was a problem getting the users'
+      })
+    }
   }
-})
+)
 
-app.get('/api/bio', requireAuth, async (req, res) => {
+app.get('/api/bio', requireAuth, jwtAuthz(['read:user']), async (req, res) => {
   try {
     const { sub } = req.user
     const user = await User.findOne({
@@ -271,32 +291,37 @@ app.get('/api/bio', requireAuth, async (req, res) => {
   }
 })
 
-app.patch('/api/bio', requireAuth, async (req, res) => {
-  try {
-    const { sub } = req.user
-    const { bio } = req.body
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        _id: sub
-      },
-      {
-        bio
-      },
-      {
-        new: true
-      }
-    )
+app.patch(
+  '/api/bio',
+  requireAuth,
+  jwtAuthz(['edit:user']),
+  async (req, res) => {
+    try {
+      const { sub } = req.user
+      const { bio } = req.body
+      const updatedUser = await User.findOneAndUpdate(
+        {
+          _id: sub
+        },
+        {
+          bio
+        },
+        {
+          new: true
+        }
+      )
 
-    res.json({
-      message: 'Bio updated!',
-      bio: updatedUser.bio
-    })
-  } catch (err) {
-    return res.status(400).json({
-      message: 'There was a problem updating your bio'
-    })
+      res.json({
+        message: 'Bio updated!',
+        bio: updatedUser.bio
+      })
+    } catch (err) {
+      return res.status(400).json({
+        message: 'There was a problem updating your bio'
+      })
+    }
   }
-})
+)
 
 async function connect() {
   try {
