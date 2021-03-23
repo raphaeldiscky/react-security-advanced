@@ -3,6 +3,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const jwt = require('express-jwt')
+const jwks = require('jwks-rsa')
 const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
 
@@ -136,10 +137,16 @@ const attachUser = (req, res, next) => {
 
 app.use(attachUser)
 
-const requireAuth = jwt({
-  secret: process.env.JWT_SECRET,
-  audience: 'api.orbit',
-  issuer: 'api.orbit'
+var requireAuth = jwt({
+  secret: jwks.expressJwtSecret({
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: process.env.AUTH0_JWKS_URI
+  }),
+  audience: process.env.AUTH0_AUDIENCE,
+  issuer: process.env.AUTH0_ISSUER,
+  algorithms: ['RS256']
 })
 
 const requireAdmin = (req, res, next) => {
