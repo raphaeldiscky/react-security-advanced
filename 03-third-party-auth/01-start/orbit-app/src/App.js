@@ -62,12 +62,18 @@ const AuthenticatedRoute = ({ children, ...rest }) => {
 }
 
 const AdminRoute = ({ children, ...rest }) => {
-  const { isAuthenticated } = useAuth0()
+  const { user, isAuthenticated } = useAuth0()
+  const roles = user[`${process.env.REACT_APP_JWT_NAMESPACE}/roles`]
+  const isAdmin = roles[0] === 'admin' ? true : false
   return (
     <Route
       {...rest}
       render={() =>
-        isAuthenticated ? <AppShell>{children}</AppShell> : <Redirect to='/' />
+        isAuthenticated && isAdmin ? (
+          <AppShell>{children}</AppShell>
+        ) : (
+          <Redirect to='/' />
+        )
       }
     ></Route>
   )
@@ -98,9 +104,9 @@ const AppRoutes = () => {
           <AuthenticatedRoute path='/dashboard'>
             <Dashboard />
           </AuthenticatedRoute>
-          <AuthenticatedRoute path='/inventory'>
+          <AdminRoute path='/inventory'>
             <Inventory />
-          </AuthenticatedRoute>
+          </AdminRoute>
           <AuthenticatedRoute path='/account'>
             <Account />
           </AuthenticatedRoute>

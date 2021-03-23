@@ -150,12 +150,8 @@ var requireAuth = jwt({
   algorithms: ['RS256']
 })
 
-const requireAdmin = (req, res, next) => {
-  const { role } = req.user
-  if (role !== 'admin') {
-    return res.status(401).json({ message: 'Insufficient role' })
-  }
-  next()
+const getUserId = (user) => {
+  return user[`${process.env.AUTH0_JWT_NAMESPACE}/sub`]
 }
 
 app.get(
@@ -194,9 +190,9 @@ app.get(
   jwtAuthz(['read:inventory']),
   async (req, res) => {
     try {
-      const user = req.user.sub
+      const userId = getUserId(req.user)
       const inventoryItems = await InventoryItem.find({
-        user
+        user: userId
       })
       res.json(inventoryItems)
     } catch (err) {
@@ -211,7 +207,7 @@ app.post(
   jwtAuthz(['write:inventory']),
   async (req, res) => {
     try {
-      const userId = req.user.sub
+      const userId = getUserId(req.user)
       const input = Object.assign({}, req.body, {
         user: userId
       })
@@ -235,9 +231,10 @@ app.delete(
   jwtAuthz(['delete:inventory']),
   async (req, res) => {
     try {
+      const userId = getUserId(req.user)
       const deletedItem = await InventoryItem.findOneAndDelete({
         _id: req.params.id,
-        user: req.user.sub
+        user: userId
       })
       res.status(201).json({
         message: 'Inventory item deleted!',
@@ -274,9 +271,9 @@ app.get(
 
 app.get('/api/bio', requireAuth, jwtAuthz(['read:user']), async (req, res) => {
   try {
-    const { sub } = req.user
+    const userId = getUserId(req.user)
     const user = await User.findOne({
-      _id: sub
+      _id: userId
     })
       .lean()
       .select('bio')
@@ -297,11 +294,11 @@ app.patch(
   jwtAuthz(['edit:user']),
   async (req, res) => {
     try {
-      const { sub } = req.user
+      const userId = getUserId(req.user)
       const { bio } = req.body
       const updatedUser = await User.findOneAndUpdate(
         {
-          _id: sub
+          _id: userId
         },
         {
           bio
