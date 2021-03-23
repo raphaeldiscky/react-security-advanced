@@ -31,7 +31,7 @@ const AvatarDropdown = () => {
   const auth = useContext(AuthContext)
   const { authState } = auth
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const { logout } = useAuth0()
+  const { logout, user } = useAuth0()
 
   const dropdownItems = [
     {
@@ -63,12 +63,12 @@ const AvatarDropdown = () => {
         onClick={() => setDropdownOpen(!dropdownOpen)}
       >
         <img
-          src={authState.userInfo.avatar || defaultAvatar}
+          src={user.picture}
           className='rounded-full w-6 border-2 border-white'
           alt='Avatar'
         />
         <div className='px-3'>
-          <p className='text-white'>{authState.userInfo.firstName}</p>
+          <p className='text-white text-xs'>{user.name}</p>
         </div>
         <div className='mr-1 text-white'>
           <FontAwesomeIcon icon={faCaretDown} />
