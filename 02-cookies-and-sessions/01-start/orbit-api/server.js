@@ -26,8 +26,11 @@ app.use(
     secret: process.env.SESSION_SECRET,
     saveUninitialized: false,
     resave: false,
+    rolling: true,
     cookie: {
       httpOnly: true,
+      sameSite: true,
+      secure: process.env.NODE_ENV === 'production' ? true : false,
       maxAge: parseInt(process.env.SESSION_MAX_AGE)
     }
   })
