@@ -16,7 +16,8 @@ const AuthProvider = ({ children }) => {
   const [authState, setAuthState] = useState({
     token,
     expiresAt,
-    userInfo: userInfo ? JSON.parse(userInfo) : {}
+    userInfo: null,
+    isAuthenticated: false
   })
 
   useEffect(() => {
@@ -24,6 +25,12 @@ const AuthProvider = ({ children }) => {
       try {
         const { data } = await fetchContext.authAxios.get('/user-info')
         console.log(data)
+        setAuthState(
+          Object.assign({}, authState, {
+            userInfo: data.user,
+            isAuthenticated: true
+          })
+        )
       } catch (err) {
         console.log(err)
       }
