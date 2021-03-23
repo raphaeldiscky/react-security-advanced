@@ -9,13 +9,7 @@ const AuthProvider = ({ children }) => {
   const history = useHistory()
   const fetchContext = useContext(FetchContext)
 
-  const token = localStorage.getItem('token')
-  const userInfo = localStorage.getItem('userInfo')
-  const expiresAt = localStorage.getItem('expiresAt')
-
   const [authState, setAuthState] = useState({
-    token,
-    expiresAt,
     userInfo: null,
     isAuthenticated: false
   })
@@ -24,49 +18,37 @@ const AuthProvider = ({ children }) => {
     const getUserInfo = async () => {
       try {
         const { data } = await fetchContext.authAxios.get('/user-info')
-        console.log(data)
-        setAuthState(
-          Object.assign({}, authState, {
-            userInfo: data.user,
-            isAuthenticated: true
-          })
-        )
+        setAuthState({
+          userInfo: data.user,
+          isAuthenticated: true
+        })
       } catch (err) {
-        console.log(err)
+        setAuthState({
+          userInfo: null,
+          isAuthenticated: false
+        })
       }
     }
     getUserInfo()
   }, [fetchContext])
 
-  const setAuthInfo = ({ token, userInfo, expiresAt }) => {
-    localStorage.setItem('token', token)
-    localStorage.setItem('userInfo', JSON.stringify(userInfo))
-    localStorage.setItem('expiresAt', expiresAt)
-
+  const setAuthInfo = ({ userInfo }) => {
     setAuthState({
-      token,
-      userInfo,
-      expiresAt
+      userInfo
     })
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    localStorage.removeItem('expiresAt')
-    setAuthState({})
-    history.push('/login')
-  }
-
-  const isAuthenticated = () => {
-    if (!authState.token || !authState.expiresAt) {
-      return false
+  const logout = async () => {
+    try {
+      await fetchContext.authAxios.post('/logout')
+      setAuthState({
+        userInfo: null,
+        isAuthenticated: false
+      })
+      history.push('/login')
+    } catch (err) {
+      console.log(err)
     }
-    return new Date().getTime() / 1000 < authState.expiresAt
-  }
-
-  const isAdmin = () => {
-    return authState.userInfo.role === 'admin'
   }
 
   return (
@@ -74,9 +56,7 @@ const AuthProvider = ({ children }) => {
       value={{
         authState,
         setAuthState: (authInfo) => setAuthInfo(authInfo),
-        logout,
-        isAuthenticated,
-        isAdmin
+        logout
       }}
     >
       {children}
