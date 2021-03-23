@@ -1,5 +1,5 @@
 import React, { lazy, Suspense, useContext } from 'react'
-import { Auth0Provider } from '@auth0/auth0-react'
+import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
 import {
   BrowserRouter as Router,
   Route,
@@ -17,6 +17,7 @@ import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import FourOFour from './pages/FourOFour'
+import logo from './images/logo.png'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Inventory = lazy(() => import('./pages/Inventory'))
@@ -49,6 +50,8 @@ const UnauthenticatedRoutes = () => (
 
 const AuthenticatedRoute = ({ children, ...rest }) => {
   const auth = useContext(AuthContext)
+  const { user } = useAuth0()
+  console.log(user)
   return (
     <Route
       {...rest}
@@ -79,7 +82,24 @@ const AdminRoute = ({ children, ...rest }) => {
   )
 }
 
+const LoadingLogo = () => {
+  return (
+    <div className='self-center'>
+      <img className='w-32' src={logo} />
+    </div>
+  )
+}
+
 const AppRoutes = () => {
+  const { isLoading } = useAuth0()
+  if (isLoading) {
+    return (
+      <div className='h-screen flex justify-center'>
+        <LoadingLogo />
+      </div>
+    )
+  }
+
   return (
     <>
       <Suspense fallback={<LoadingFallback />}>
