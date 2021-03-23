@@ -8,14 +8,11 @@ import {
 } from 'react-router-dom'
 import './App.css'
 
-import { AuthProvider } from './context/AuthContext'
 import { FetchProvider } from './context/FetchContext'
 
 import AppShell from './AppShell'
 
 import Home from './pages/Home'
-import Login from './pages/Login'
-import Signup from './pages/Signup'
 import FourOFour from './pages/FourOFour'
 import logo from './images/logo.png'
 
@@ -33,12 +30,6 @@ const LoadingFallback = () => (
 
 const UnauthenticatedRoutes = () => (
   <Switch>
-    <Route path='/login'>
-      <Login />
-    </Route>
-    <Route path='/signup'>
-      <Signup />
-    </Route>
     <Route exact path='/'>
       <Home />
     </Route>
@@ -144,13 +135,11 @@ function App() {
       scope={requestedScopes.join(' ')}
     >
       <Router>
-        <AuthProvider>
-          <FetchProvider>
-            <div className='bg-gray-100'>
-              <AppRoutes />
-            </div>
-          </FetchProvider>
-        </AuthProvider>
+        <FetchProvider>
+          <div className='bg-gray-100'>
+            <AppRoutes />
+          </div>
+        </FetchProvider>
       </Router>
     </Auth0Provider>
   )

@@ -1,9 +1,7 @@
-import React, { useContext, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { faCaretDown, faSignOutAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { AuthContext } from './../context/AuthContext'
-import defaultAvatar from './../images/defaultAvatar.png'
 
 const DropdownItem = ({ item }) => (
   <button className='text-gray-700 flex items-center' onClick={item.onClick}>
@@ -28,8 +26,6 @@ const DropdownContent = ({ dropdownItems }) => {
 
 const AvatarDropdown = () => {
   const node = useRef()
-  const auth = useContext(AuthContext)
-  const { authState } = auth
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const { logout, user } = useAuth0()
 

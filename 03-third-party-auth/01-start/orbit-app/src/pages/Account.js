@@ -2,11 +2,9 @@ import React, { useContext, useState } from 'react'
 import PageTitle from '../components/common/PageTitle'
 import Card from '../components/common/Card'
 import { FetchContext } from '../context/FetchContext'
-import { AuthContext } from '../context/AuthContext'
 
 const Account = () => {
   const fetchContext = useContext(FetchContext)
-  const auth = useContext(AuthContext)
   const [successMessage, setSuccessMessage] = useState()
   const [errorMessage, setErrorMessage] = useState()
 
@@ -30,7 +28,7 @@ const Account = () => {
           <p>Select a role for yourself</p>
           <div className='mt-2 flex'>
             <select
-              defaultValue={auth.authState.userInfo.role}
+              defaultValue={'admin'}
               onChange={(e) => setUserRole(e.target.value)}
             >
               <option value='user'>User</option>

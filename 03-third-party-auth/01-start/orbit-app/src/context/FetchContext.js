@@ -1,13 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import axios from 'axios'
-import { AuthContext } from './AuthContext'
 
 const FetchContext = createContext()
 const { Provider } = FetchContext
 
 const FetchProvider = ({ children }) => {
-  const authContext = useContext(AuthContext)
   const [accessToken, setAccessToken] = useState()
   const { getAccessTokenSilently } = useAuth0()
 
