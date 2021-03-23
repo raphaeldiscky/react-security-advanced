@@ -6,6 +6,7 @@ const mongoose = require('mongoose')
 const session = require('express-session')
 const csrf = require('csurf')
 const cookieParser = require('cookie-parser')
+const FileStore = require('session-file-store')(session)
 
 const dashboardData = require('./data/dashboard')
 const User = require('./data/User')
@@ -21,8 +22,9 @@ app.use(bodyParser.json())
 app.use(cookieParser())
 app.use(
   session({
+    store: new FileStore({}),
     secret: process.env.SESSION_SECRET,
-    saveUninitialized: true, // set cookie in browser before we get info from session
+    saveUninitialized: false,
     resave: false,
     cookie: {
       httpOnly: true,
