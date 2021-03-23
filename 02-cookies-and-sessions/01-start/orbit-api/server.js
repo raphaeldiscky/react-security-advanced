@@ -2,7 +2,6 @@ require('dotenv').config()
 const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
 const session = require('express-session')
 const csrf = require('csurf')
@@ -12,7 +11,7 @@ const dashboardData = require('./data/dashboard')
 const User = require('./data/User')
 const InventoryItem = require('./data/InventoryItem')
 
-const { createToken, hashPassword, verifyPassword } = require('./util')
+const { hashPassword, verifyPassword } = require('./util')
 
 const app = express()
 
@@ -64,21 +63,13 @@ app.post('/api/authenticate', async (req, res) => {
     const passwordValid = await verifyPassword(password, user.password)
 
     if (passwordValid) {
-      const { password, bio, ...rest } = user
-      const userInfo = Object.assign({}, { ...rest })
-
-      const token = createToken(userInfo)
-
-      const decodedToken = jwtDecode(token)
-      const expiresAt = decodedToken.exp
-
+      const { _id, firstName, lastName, email, role } = user
+      const userInfo = { _id, firstName, lastName, email, role }
       req.session.user = userInfo
 
       res.json({
         message: 'Authentication successful!',
-        token,
-        userInfo,
-        expiresAt
+        userInfo
       })
     } else {
       res.status(403).json({
@@ -117,13 +108,10 @@ app.post('/api/signup', async (req, res) => {
     const savedUser = await newUser.save()
 
     if (savedUser) {
-      const token = createToken(savedUser)
-      const decodedToken = jwtDecode(token)
-      const expiresAt = decodedToken.exp
-
-      const { firstName, lastName, email, role } = savedUser
+      const { _id, firstName, lastName, email, role } = savedUser
 
       const userInfo = {
+        _id,
         firstName,
         lastName,
         email,
@@ -134,9 +122,7 @@ app.post('/api/signup', async (req, res) => {
 
       return res.json({
         message: 'User created!',
-        token,
-        userInfo,
-        expiresAt
+        userInfo
       })
     } else {
       return res.status(400).json({
