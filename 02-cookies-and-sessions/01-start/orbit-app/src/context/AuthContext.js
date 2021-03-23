@@ -24,7 +24,7 @@ const AuthProvider = ({ children }) => {
         })
       } catch (err) {
         setAuthState({
-          userInfo: null,
+          userInfo: {},
           isAuthenticated: false
         })
       }
@@ -34,7 +34,8 @@ const AuthProvider = ({ children }) => {
 
   const setAuthInfo = ({ userInfo }) => {
     setAuthState({
-      userInfo
+      userInfo,
+      isAuthenticated: userInfo && userInfo._id ? true : false
     })
   }
 
@@ -42,7 +43,7 @@ const AuthProvider = ({ children }) => {
     try {
       await fetchContext.authAxios.post('/logout')
       setAuthState({
-        userInfo: null,
+        userInfo: {},
         isAuthenticated: false
       })
       history.push('/login')

@@ -9,7 +9,7 @@ import FormSuccess from './../components/FormSuccess'
 import FormError from './../components/FormError'
 import GradientBar from './../components/common/GradientBar'
 import { AuthContext } from '../context/AuthContext'
-import { publicFetch } from './../util/fetch'
+import { FetchContext } from '../context/FetchContext'
 import { Redirect } from 'react-router-dom'
 import GradientButton from '../components/common/GradientButton'
 import logo from './../images/logo.png'
@@ -21,6 +21,7 @@ const LoginSchema = Yup.object().shape({
 
 const Login = () => {
   const authContext = useContext(AuthContext)
+  const fetchContext = useContext(FetchContext)
   const [loginSuccess, setLoginSuccess] = useState()
   const [loginError, setLoginError] = useState()
   const [redirectOnLogin, setRedirectOnLogin] = useState(false)
@@ -29,7 +30,10 @@ const Login = () => {
   const submitCredentials = async (credentials) => {
     try {
       setLoginLoading(true)
-      const { data } = await publicFetch.post(`authenticate`, credentials)
+      const { data } = await fetchContext.publicAxios.post(
+        `authenticate`,
+        credentials
+      )
 
       authContext.setAuthState(data)
       setLoginSuccess(data.message)
