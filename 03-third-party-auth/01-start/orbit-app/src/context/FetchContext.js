@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useState, useCallback } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import axios from 'axios'
 
@@ -9,18 +9,19 @@ const FetchProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState()
   const { getAccessTokenSilently } = useAuth0()
 
-  useEffect(() => {
-    const getAccessToken = async () => {
-      try {
-        const token = await getAccessTokenSilently()
-        console.log(token)
-        setAccessToken(token)
-      } catch (err) {
-        console.log(err)
-      }
+  const getAccessToken = useCallback(async () => {
+    try {
+      const token = await getAccessTokenSilently()
+      console.log(token)
+      setAccessToken(token)
+    } catch (err) {
+      console.log(err)
     }
-    getAccessToken()
   }, [getAccessTokenSilently])
+
+  useEffect(() => {
+    getAccessToken()
+  }, [getAccessToken])
 
   const authAxios = axios.create({
     baseURL: process.env.REACT_APP_API_URL
@@ -42,8 +43,9 @@ const FetchProvider = ({ children }) => {
     },
     (error) => {
       const code = error && error.response ? error.response.status : 0
-      if (code === 401 || code === 403) {
-        console.log('error code', code)
+      if (code === 401) {
+        // 401 = jwt expired
+        getAccessToken()
       }
       return Promise.reject(error)
     }
