@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import { faCaretDown, faSignOutAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { AuthContext } from './../context/AuthContext'
@@ -30,12 +31,13 @@ const AvatarDropdown = () => {
   const auth = useContext(AuthContext)
   const { authState } = auth
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { logout } = useAuth0()
 
   const dropdownItems = [
     {
       title: 'Log Out',
       icon: faSignOutAlt,
-      onClick: auth.logout
+      onClick: () => logout({ returnTo: window.location.origin })
     }
   ]
 
