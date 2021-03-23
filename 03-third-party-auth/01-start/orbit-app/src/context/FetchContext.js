@@ -1,4 +1,5 @@
-import React, { createContext, useContext } from 'react'
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { useAuth0 } from '@auth0/auth0-react'
 import axios from 'axios'
 import { AuthContext } from './AuthContext'
 
@@ -7,6 +8,21 @@ const { Provider } = FetchContext
 
 const FetchProvider = ({ children }) => {
   const authContext = useContext(AuthContext)
+  const [accessToken, setAccessToken] = useState()
+  const { getAccessTokenSilently } = useAuth0()
+
+  useEffect(() => {
+    const getAccessToken = async () => {
+      try {
+        const token = await getAccessTokenSilently()
+        console.log(token)
+        setAccessToken(token)
+      } catch (err) {
+        console.log(err)
+      }
+    }
+    getAccessToken()
+  }, [getAccessTokenSilently])
 
   const authAxios = axios.create({
     baseURL: process.env.REACT_APP_API_URL
@@ -14,7 +30,7 @@ const FetchProvider = ({ children }) => {
 
   authAxios.interceptors.request.use(
     (config) => {
-      config.headers.Authorization = `Bearer ${authContext.authState.token}`
+      config.headers.Authorization = `Bearer ${accessToken}`
       return config
     },
     (error) => {
