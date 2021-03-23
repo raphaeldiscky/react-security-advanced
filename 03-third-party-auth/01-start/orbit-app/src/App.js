@@ -117,6 +117,17 @@ const AppRoutes = () => {
   )
 }
 
+const requestedScopes = [
+  'read:dashboard',
+  'read:inventory',
+  'write:inventory',
+  'edit:inventory',
+  'delete:inventory',
+  'read:users',
+  'read:user',
+  'edit:user'
+]
+
 function App() {
   return (
     <Auth0Provider
@@ -124,6 +135,7 @@ function App() {
       clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
       redirectUri={`${window.location.origin}/dashboard`}
       audience={process.env.REACT_APP_AUTH0_AUDIENCE}
+      scope={requestedScopes.join(' ')}
     >
       <Router>
         <AuthProvider>

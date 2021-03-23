@@ -3,6 +3,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const jwt = require('express-jwt')
+const jwtAuthz = require('express-jwt-authz')
 const jwks = require('jwks-rsa')
 const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
@@ -157,8 +158,11 @@ const requireAdmin = (req, res, next) => {
   next()
 }
 
-app.get('/api/dashboard-data', requireAuth, (req, res) =>
-  res.json(dashboardData)
+app.get(
+  '/api/dashboard-data',
+  requireAuth,
+  jwtAuthz(['read:dashboard']),
+  (req, res) => res.json(dashboardData)
 )
 
 app.patch('/api/user-role', async (req, res) => {
