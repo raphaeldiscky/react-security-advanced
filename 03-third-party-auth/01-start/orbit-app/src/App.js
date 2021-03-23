@@ -49,34 +49,25 @@ const UnauthenticatedRoutes = () => (
 )
 
 const AuthenticatedRoute = ({ children, ...rest }) => {
-  const auth = useContext(AuthContext)
-  const { user } = useAuth0()
+  const { user, isAuthenticated } = useAuth0()
   console.log(user)
   return (
     <Route
       {...rest}
       render={() =>
-        auth.isAuthenticated() ? (
-          <AppShell>{children}</AppShell>
-        ) : (
-          <Redirect to='/' />
-        )
+        isAuthenticated ? <AppShell>{children}</AppShell> : <Redirect to='/' />
       }
     ></Route>
   )
 }
 
 const AdminRoute = ({ children, ...rest }) => {
-  const auth = useContext(AuthContext)
+  const { isAuthenticated } = useAuth0()
   return (
     <Route
       {...rest}
       render={() =>
-        auth.isAuthenticated() && auth.isAdmin() ? (
-          <AppShell>{children}</AppShell>
-        ) : (
-          <Redirect to='/' />
-        )
+        isAuthenticated ? <AppShell>{children}</AppShell> : <Redirect to='/' />
       }
     ></Route>
   )
