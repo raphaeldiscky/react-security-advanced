@@ -10,15 +10,20 @@ const {
   ApolloServer,
   gql,
   ApolloError,
-  UserInputError
+  UserInputError,
+  AuthenticationError
 } = require('apollo-server')
 
 const { createToken, hashPassword, verifyPassword } = require('./util')
 
+// resolver = endpoint for graphql query
 const resolvers = {
   Query: {
     dashboardData: (parent, args, context) => {
-      console.log(context.user)
+      const { user } = context
+      if (!user || (user.role !== 'user' && user.role !== 'admin')) {
+        throw new AuthenticationError('Not authorized')
+      }
       return dashboardData
     },
     users: async () => {
