@@ -16,17 +16,23 @@ const {
 
 const { createToken, hashPassword, verifyPassword } = require('./util')
 
+const checkUserRole = (user, allowableRoles) => {
+  if (!user || !allowableRoles.includes(user.role)) {
+    throw new AuthenticationError('Not authorized')
+  }
+  return true
+}
+
 // resolver = endpoint for graphql query
 const resolvers = {
   Query: {
     dashboardData: (parent, args, context) => {
       const { user } = context
-      if (!user || (user.role !== 'user' && user.role !== 'admin')) {
-        throw new AuthenticationError('Not authorized')
-      }
+      checkUserRole(context.user, ['user', 'admin'])
       return dashboardData
     },
-    users: async () => {
+    users: async (parent, args, context) => {
+      checkUserRole(context.user, ['admin'])
       try {
         return await User.find()
           .lean()
@@ -35,7 +41,8 @@ const resolvers = {
         return err
       }
     },
-    user: async () => {
+    user: async (parent, args, context) => {
+      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         return await User.findOne({ _id: user })
@@ -45,7 +52,8 @@ const resolvers = {
         return err
       }
     },
-    inventoryItems: async () => {
+    inventoryItems: async (parent, args, context) => {
+      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         return await InventoryItem.find({
@@ -55,7 +63,8 @@ const resolvers = {
         return err
       }
     },
-    userBio: async () => {
+    userBio: async (parent, args, context) => {
+      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const foundUser = await User.findOne({
@@ -160,7 +169,8 @@ const resolvers = {
         return err
       }
     },
-    addInventoryItem: async (parent, args) => {
+    addInventoryItem: async (parent, args, context) => {
+      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const input = Object.assign({}, args, {
@@ -176,7 +186,8 @@ const resolvers = {
         return err
       }
     },
-    deleteInventoryItem: async (parent, args) => {
+    deleteInventoryItem: async (parent, args, context) => {
+      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { id } = args
@@ -192,7 +203,8 @@ const resolvers = {
         return err
       }
     },
-    updateUserRole: async (parent, args) => {
+    updateUserRole: async (parent, args, context) => {
+      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { role } = args
@@ -211,7 +223,8 @@ const resolvers = {
         return err
       }
     },
-    updateUserBio: async (parent, args) => {
+    updateUserBio: async (parent, args, context) => {
+      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { bio } = args
