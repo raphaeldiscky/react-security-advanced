@@ -43,8 +43,8 @@ const resolvers = {
     },
     user: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
-        return await User.findOne({ _id: user })
+        const { user } = context
+        return await User.findOne({ _id: user.sub })
           .lean()
           .select('_id firstName lastName role avatar bio')
       } catch (err) {
@@ -53,9 +53,9 @@ const resolvers = {
     },
     inventoryItems: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         return await InventoryItem.find({
-          user: user
+          user: user.sub
         })
       } catch (err) {
         return err
@@ -63,9 +63,9 @@ const resolvers = {
     },
     userBio: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         const foundUser = await User.findOne({
-          _id: user
+          _id: user.sub
         })
           .lean()
           .select('bio')
@@ -168,9 +168,9 @@ const resolvers = {
     },
     addInventoryItem: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         const input = Object.assign({}, args, {
-          user: user
+          user: user.sub
         })
         const inventoryItem = new InventoryItem(input)
         const inventoryItemResult = await inventoryItem.save()
@@ -184,11 +184,11 @@ const resolvers = {
     },
     deleteInventoryItem: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         const { id } = args
         const deletedItem = await InventoryItem.findOneAndDelete({
           _id: id,
-          user: user
+          user: user.sub
         })
         return {
           message: 'Inventory item deleted!',
@@ -200,14 +200,17 @@ const resolvers = {
     },
     updateUserRole: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         const { role } = args
         const allowedRoles = ['user', 'admin']
 
         if (!allowedRoles.includes(role)) {
           throw new ApolloError('Invalid user role')
         }
-        const updatedUser = await User.findOneAndUpdate({ _id: user }, { role })
+        const updatedUser = await User.findOneAndUpdate(
+          { _id: user.sub },
+          { role }
+        )
         return {
           message:
             'User role updated. You must log in again for the changes to take effect.',
@@ -219,11 +222,11 @@ const resolvers = {
     },
     updateUserBio: async (parent, args, context) => {
       try {
-        const user = '507f1f77bcf86cd799439011'
+        const { user } = context
         const { bio } = args
         const updatedUser = await User.findOneAndUpdate(
           {
-            _id: user
+            _id: user.sub
           },
           {
             bio
