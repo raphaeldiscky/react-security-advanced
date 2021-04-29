@@ -1,4 +1,5 @@
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
 const jwtDecode = require('jwt-decode')
 const mongoose = require('mongoose')
 const dashboardData = require('./data/dashboard')
@@ -16,7 +17,8 @@ const { createToken, hashPassword, verifyPassword } = require('./util')
 
 const resolvers = {
   Query: {
-    dashboardData: () => {
+    dashboardData: (parent, args, context) => {
+      console.log(context.user)
       return dashboardData
     },
     users: async () => {
@@ -320,7 +322,19 @@ const typeDefs = gql`
 
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  context: ({ req }) => {
+    try {
+      const token = req.headers.authorization
+      if (!token) {
+        return { user: null }
+      }
+      const decoded = jwt.verify(token.slice(7), process.env.JWT_SECRET)
+      return { user: decoded }
+    } catch (err) {
+      return { user: null }
+    }
+  }
 })
 
 async function connect() {
