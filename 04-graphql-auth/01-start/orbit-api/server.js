@@ -30,12 +30,9 @@ const checkUserRole = (user, allowableRoles) => {
 const resolvers = {
   Query: {
     dashboardData: (parent, args, context) => {
-      const { user } = context
-      checkUserRole(context.user, ['user', 'admin'])
       return dashboardData
     },
     users: async (parent, args, context) => {
-      checkUserRole(context.user, ['admin'])
       try {
         return await User.find()
           .lean()
@@ -45,7 +42,6 @@ const resolvers = {
       }
     },
     user: async (parent, args, context) => {
-      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         return await User.findOne({ _id: user })
@@ -56,7 +52,6 @@ const resolvers = {
       }
     },
     inventoryItems: async (parent, args, context) => {
-      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         return await InventoryItem.find({
@@ -67,7 +62,6 @@ const resolvers = {
       }
     },
     userBio: async (parent, args, context) => {
-      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const foundUser = await User.findOne({
@@ -173,7 +167,6 @@ const resolvers = {
       }
     },
     addInventoryItem: async (parent, args, context) => {
-      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const input = Object.assign({}, args, {
@@ -190,7 +183,6 @@ const resolvers = {
       }
     },
     deleteInventoryItem: async (parent, args, context) => {
-      checkUserRole(context.user, ['admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { id } = args
@@ -207,7 +199,6 @@ const resolvers = {
       }
     },
     updateUserRole: async (parent, args, context) => {
-      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { role } = args
@@ -227,7 +218,6 @@ const resolvers = {
       }
     },
     updateUserBio: async (parent, args, context) => {
-      checkUserRole(context.user, ['user', 'admin'])
       try {
         const user = '507f1f77bcf86cd799439011'
         const { bio } = args
@@ -269,7 +259,7 @@ const typeDefs = gql`
     amount: Int!
   }
 
-  type DashboardData @auth(requires: [USER, ADMIN]) {
+  type DashboardData {
     salesVolume: Int!
     newCustomers: Int!
     refunds: Int!
@@ -322,11 +312,11 @@ const typeDefs = gql`
   }
 
   type Query {
-    dashboardData: DashboardData
-    users: [User]
-    user: User
-    inventoryItems: [InventoryItem]
-    userBio: UserBio
+    dashboardData: DashboardData @auth(requires: [USER, ADMIN])
+    users: [User] @auth(requires: [ADMIN])
+    user: User @auth(requires: [USER, ADMIN])
+    inventoryItems: [InventoryItem] @auth(requires: [ADMIN])
+    userBio: UserBio @auth(requires: [USER, ADMIN])
   }
 
   type Mutation {
@@ -341,10 +331,12 @@ const typeDefs = gql`
       name: String!
       itemNumber: String!
       unitPrice: Float!
-    ): InventoryItemResult
-    deleteInventoryItem(id: ID!): InventoryItemResult
+    ): InventoryItemResult @auth(requires: [ADMIN])
+    deleteInventoryItem(id: ID!): InventoryItemResult @auth(requires: [ADMIN])
     updateUserRole(role: String!): UserUpdateResult
+      @auth(requires: [USER, ADMIN])
     updateUserBio(bio: String!): UserBioUpdateResult
+      @auth(requires: [USER, ADMIN])
   }
 `
 
