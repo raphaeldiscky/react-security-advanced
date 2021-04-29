@@ -257,7 +257,7 @@ const resolvers = {
 }
 
 const typeDefs = gql`
-  directive @auth(requires: Role = ADMIN) on OBJECT | FIELD_DEFINITION
+  directive @auth(requires: [Role] = [ADMIN]) on OBJECT | FIELD_DEFINITION
 
   enum Role {
     ADMIN
@@ -269,7 +269,7 @@ const typeDefs = gql`
     amount: Int!
   }
 
-  type DashboardData @auth(requires: ADMIN) {
+  type DashboardData @auth(requires: [USER, ADMIN]) {
     salesVolume: Int!
     newCustomers: Int!
     refunds: Int!
@@ -350,9 +350,46 @@ const typeDefs = gql`
 
 class AuthDirective extends SchemaDirectiveVisitor {
   visitObject(type) {
-    console.log(type)
+    this.ensureFieldsWrapped(type)
+    type._requiredAuthRole = this.args.requires
   }
-  visitFieldDefinition(field, details) {}
+  visitFieldDefinition(field, details) {
+    this.ensureFieldsWrapped(details.objectType)
+    field._requiredAuthRole = this.args.requires
+  }
+  ensureFieldsWrapped(objectType) {
+    if (objectType._authFieldsWrapped) return
+    objectType._authFieldsWrapped = true
+
+    const fields = objectType.getFields()
+
+    Object.keys(fields).forEach((fieldName) => {
+      const field = fields[fieldName]
+      const { resolve = defaultFieldResolver } = field
+      field.resolve = async function (...args) {
+        const allowableRoles =
+          field._requiredAuthRole || objectType._requiredAuthRole
+
+        if (!allowableRoles || !allowableRoles.length) {
+          return resolve.apply(this, args)
+        }
+        const context = args[2]
+        const { user } = context
+        if (!user) {
+          throw new AuthenticationError('Not authorized')
+        }
+        if (
+          !checkUserRole(
+            user,
+            allowableRoles.map((role) => role.toLowerCase())
+          )
+        ) {
+          throw new AuthenticationError('Not authorized')
+        }
+        return resolve.apply(this, args)
+      }
+    })
+  }
 }
 
 const server = new ApolloServer({
