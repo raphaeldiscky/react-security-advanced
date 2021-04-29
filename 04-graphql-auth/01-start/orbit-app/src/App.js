@@ -32,6 +32,16 @@ const client = new ApolloClient({
         }
       })
     }
+  },
+  onError: ({ networkError, graphQLErrors }) => {
+    if (graphQLErrors) {
+      const unauthorizedErrors = graphQLErrors.filter(
+        (error) => error.extensions.code === 'UNAUTHENTICATED'
+      )
+      if (unauthorizedErrors.length) {
+        window.location = '/login'
+      }
+    }
   }
 })
 
