@@ -254,6 +254,13 @@ const resolvers = {
 }
 
 const typeDefs = gql`
+  directive @auth(requires: Role = ADMIN) on OBJECT | FIELD_DEFINITION
+
+  enum Role {
+    ADMIN
+    USER
+  }
+
   type Sale {
     date: String!
     amount: Int!
