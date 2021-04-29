@@ -14,6 +14,9 @@ const {
   AuthenticationError
 } = require('apollo-server')
 
+const { SchemaDirectiveVisitor } = require('graphql-tools')
+const { defaultFieldResolver } = require('graphql')
+
 const { createToken, hashPassword, verifyPassword } = require('./util')
 
 const checkUserRole = (user, allowableRoles) => {
@@ -266,7 +269,7 @@ const typeDefs = gql`
     amount: Int!
   }
 
-  type DashboardData {
+  type DashboardData @auth(requires: ADMIN) {
     salesVolume: Int!
     newCustomers: Int!
     refunds: Int!
@@ -345,9 +348,19 @@ const typeDefs = gql`
   }
 `
 
+class AuthDirective extends SchemaDirectiveVisitor {
+  visitObject(type) {
+    console.log(type)
+  }
+  visitFieldDefinition(field, details) {}
+}
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  schemaDirectives: {
+    auth: AuthDirective
+  },
   context: ({ req }) => {
     try {
       const token = req.headers.authorization
