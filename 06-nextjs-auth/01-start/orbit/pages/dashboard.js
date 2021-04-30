@@ -10,23 +10,10 @@ import {
 import { FetchContext } from '../context/FetchContext'
 import { formatCurrency } from './../util'
 import DashboardChart from './../components/DashboardChart'
+import { privateFetch } from './../util/fetch'
 
-const Dashboard = () => {
-  const fetchContext = useContext(FetchContext)
-  const [dashboardData, setDashboardData] = useState()
-
-  useEffect(() => {
-    const getDashboardData = async () => {
-      try {
-        const { data } = await fetchContext.authAxios.get('dashboard-data')
-        setDashboardData(data)
-      } catch (err) {
-        console.log(err)
-      }
-    }
-
-    getDashboardData()
-  }, [fetchContext])
+const Dashboard = ({ data }) => {
+  const [dashboardData, setDashboardData] = useState(data || {})
 
   return (
     <>
@@ -69,6 +56,16 @@ const Dashboard = () => {
       )}
     </>
   )
+}
+
+export async function getServerSideProps(context) {
+  try {
+    const { data } = await privateFetch(context).get('dashboard-data')
+    return { props: { data } }
+  } catch (err) {
+    const { data } = err.response
+    return { props: { data: { error: data.message } } }
+  }
 }
 
 export default Dashboard
